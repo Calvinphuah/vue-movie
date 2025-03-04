@@ -25,6 +25,8 @@ import Dropdown from "primevue/dropdown";
 import Dialog from "primevue/dialog";
 import InputNumber from "primevue/inputnumber";
 import DatePicker from "primevue/datepicker";
+import Toast from "primevue/toast";
+import ToastService from "primevue/toastservice";
 
 const app = createApp(App);
 
@@ -52,9 +54,11 @@ app.component("Dropdown", Dropdown);
 app.component("Dialog", Dialog);
 app.component("InputNumber", InputNumber);
 app.component("DatePicker", DatePicker);
+app.component("Toast", Toast);
 
 // ✅ Enable Ripple directive globally
 app.directive("ripple", Ripple);
+app.use(ToastService);
 
 app.use(router);
 app.mount("#app");

@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Home from "../views/Home.vue";
-import About from "../views/About.vue";
+import MovieDetails from "../views/MovieDetails.vue";
 
 const routes = [
   { path: "/", component: Home },
-  { path: "/about", component: About },
+  { path: "/movies/:id", component: MovieDetails, props: true }, // Dynamic route for movie details
 ];
 
 const router = createRouter({

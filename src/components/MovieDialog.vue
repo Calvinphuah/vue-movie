@@ -5,7 +5,7 @@
     :modal="true"
     :closable="true"
     class="w-full max-w-lg"
-    @update:visible="$emit('update:visible', false)"
+    @update:visible="closeDialog"
   >
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <!-- Title -->
@@ -96,10 +96,20 @@
 
       <!-- Image URL -->
       <div class="flex flex-col sm:col-span-2">
-        <label for="image_url" class="font-semibold mb-1">Image URL</label>
+        <label for="image_url" class="font-semibold mb-1">Image URL </label>
         <InputText
           v-model="movie.image_url"
           placeholder="Enter image URL"
+          class="p-inputtext-sm"
+        />
+      </div>
+
+      <!-- Trailer URL -->
+      <div class="flex flex-col sm:col-span-2">
+        <label for="trailer_url" class="font-semibold mb-1">Trailer URL </label>
+        <InputText
+          v-model="movie.trailer_url"
+          placeholder="Enter Trailer URL"
           class="p-inputtext-sm"
         />
       </div>
@@ -119,11 +129,12 @@
 
 <script>
 import axios from "axios";
+import toastServices from "../utils/toastServices";
 
 export default {
   props: {
     visible: Boolean,
-    movieData: Object, // This is used for editing an existing movie
+    movieData: Object, // Used for editing an existing movie
   },
   data() {
     return {
@@ -135,15 +146,15 @@ export default {
   },
   computed: {
     isEditing() {
-      return this.movieData !== null;
+      return !!this.movieData; // True if editing
     },
   },
   watch: {
-    movieData: {
-      immediate: true,
-      handler(newMovie) {
-        this.movie = newMovie ? { ...newMovie } : this.getEmptyMovie();
-      },
+    // Reset form when `visible` changes
+    visible(newVal) {
+      if (newVal) {
+        this.resetForm();
+      }
     },
   },
   methods: {
@@ -156,14 +167,24 @@ export default {
         release_date: "",
         score: null,
         image_url: "",
+        trailer_url: "",
       };
+    },
+
+    resetForm() {
+      // If editing, pre-fill with data; otherwise, reset to empty form
+      this.movie = this.movieData
+        ? { ...this.movieData }
+        : this.getEmptyMovie();
+      this.errors = {}; // Clear errors
     },
 
     validateForm() {
       this.errors = {};
       if (!this.movie.title) this.errors.title = "Title is required.";
       if (!this.movie.director) this.errors.director = "Director is required.";
-      if (!this.movie.genres) this.errors.genres = "Genres must be selected.";
+      if (!this.movie.genres.length)
+        this.errors.genres = "Genres must be selected.";
       if (!this.movie.status) this.errors.status = "Status must be selected.";
       if (!this.movie.release_date)
         this.errors.release_date = "Release date is required.";
@@ -178,13 +199,14 @@ export default {
       try {
         const payload = {
           title: this.movie.title,
-          description: this.movie.description,
-          release_year: this.movie.release_year,
+          description: this.movie.description || "",
+          release_year: this.movie.release_year || null,
           director: this.movie.director,
           release_date: this.movie.release_date,
           score: this.movie.score,
           status: this.movie.status,
           image_url: this.movie.image_url,
+          trailer_url: this.movie.trailer_url,
           genres: Array.isArray(this.movie.genres) ? this.movie.genres : [],
         };
 
@@ -202,6 +224,7 @@ export default {
 
         this.$emit("movie-saved", response.data);
         this.closeDialog();
+        toastServices.showSuccess(this.$toast, "Saved Successfully!");
       } catch (error) {
         console.error("Error saving movie:", error);
       }
@@ -209,6 +232,7 @@ export default {
 
     closeDialog() {
       this.$emit("update:visible", false);
+      this.resetForm(); // Ensure the form is reset when closed
     },
   },
 };

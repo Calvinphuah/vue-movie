@@ -1,5 +1,8 @@
 <template>
   <div class="card pt-4">
+    <!-- Toast for Notifications -->
+    <Toast />
+
     <!-- Header -->
     <div class="flex justify-between items-center mb-3">
       <span class="text-xl font-bold">Movies</span>
@@ -20,7 +23,7 @@
     <!-- Table -->
     <DataTable :value="filteredMovies" tableStyle="min-width: 50rem">
       <!-- Image Column (No Header) -->
-      <Column>
+      <Column class="min-w-24">
         <template #body="{ data }">
           <img
             v-if="data.image_url"
@@ -32,7 +35,16 @@
         </template>
       </Column>
 
-      <Column field="title" header="Title" sortable></Column>
+      <Column field="title" header="Title" sortable>
+        <template #body="{ data }">
+          <router-link
+            :to="`/movies/${data.id}`"
+            class="text-blue-400 hover:underline"
+          >
+            {{ data.title }}
+          </router-link>
+        </template>
+      </Column>
       <Column field="director" header="Director" sortable></Column>
 
       <Column field="genres" header="Genres">
@@ -119,6 +131,7 @@
 <script>
 import axios from "axios";
 import MovieDialog from "../components/MovieDialog.vue";
+import toastServices from "../utils/toastServices";
 
 export default {
   components: {
@@ -151,8 +164,10 @@ export default {
         this.movies = response.data;
       } catch (error) {
         console.error("Error fetching movies:", error);
+        toastServices.showError(this.$toast, "Error fetching movies");
       }
     },
+
     openAddDialog() {
       this.selectedMovie = null;
       this.movieDialog = true;
@@ -176,6 +191,7 @@ export default {
         this.selectedMovie = null;
       } catch (error) {
         console.error("Error deleting movie:", error);
+        toastServices.showError(this.$toast, "Error deleting movie");
       }
     },
     handleMovieSaved(updatedMovie) {
